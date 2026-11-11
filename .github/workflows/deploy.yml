@@ -1,0 +1,75 @@
+name: Deploy automatico
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: # permite rodar manualmente pela aba Actions
+
+
+env:
+  DOCKER_USER: rafaelvlf
+  DOCKER_IMAGE: rafaelvlf/avaliacao-ci
+  CONTAINER_NAME: avaliacao
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: temurin
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_TEST }}
+          username: ubuntu
+          key: ${{ secrets.KEY_TEST }}
+          port: 22
+          script: |
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+
+            docker run -d \
+              -p 8080:8080 \
+              -e DB_HOST=postgres-aula \
+              -e DB_USER=usuario \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_NAME=auladb \
+              --network=rede \
+              --restart unless-stopped \
+              --name ${{ env.CONTAINER_NAME }} \
+              ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+
+            # Apaga imagens antigas (cada deploy gera uma nova, o disco enche rapido)
+            docker image prune -af
