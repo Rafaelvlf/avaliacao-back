@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.edu.insper</groupId>
-	<artifactId>avaliacao</artifactId>
+	<artifactId>tarefa</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>avaliacao</name>
+	<name>tarefa</name>
 	<description>API de Avaliacoes</description>
 
 	<properties>

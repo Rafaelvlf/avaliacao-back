@@ -1,4 +1,4 @@
-package br.edu.insper.avaliacao.avaliacao;
+package br.edu.insper.tarefa.tarefa;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,21 +13,21 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-public class Avaliacao {
+public class Tarefa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String emailAvaliador;
+    private String titulo;
 
-    private String emailAvaliado;
+    private String emailCriador;
 
     @Column(length = 2000)
-    private String comentarios;
+    private String descricao;
 
     // Double aceita tanto 8 quanto 8.5 no JSON
-    private Double nota;
+    private Double prioridade;
 
-    private LocalDateTime dataAvaliacao;
+    private LocalDateTime dataCriacao;
 }
